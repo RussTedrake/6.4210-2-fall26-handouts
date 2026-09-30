@@ -101,11 +101,26 @@ def bootstrap() -> None:
     print("done: the course code is on the import path")
 
 
+# Packages setup() installs when missing, as {import name: pip name}.  A pset
+# that needs a new package adds it here (and to the README's install lines).
+# ps4's letter meshes need manipulation's `letter` extra (trimesh, shapely,
+# coacd, manifold3d, mapbox-earcut) and scipy, which trimesh uses there.
+# rtree is not in that extra, but trimesh's ray casting (mesh.ray) needs it.
+PACKAGES = {
+    "pydrake": "drake",
+    "manipulation": "manipulation",
+    "trimesh": "manipulation[letter]",
+    "coacd": "manipulation[letter]",
+    "scipy": "scipy",
+    "rtree": "rtree",
+}
+
+
 def setup(pset: str) -> None:
     """
     Make this session ready to work on the given pset (e.g. setup("ps1")):
     put <repo>/<pset> on the import path so its modules import as top-level
-    names, install Drake if this session does not have it yet, and configure
+    names, install Drake and the other PACKAGES this session lacks, and configure
     git so that `!git commit` and `!git pull` work on a fresh runtime: an
     identity if it has none, and merge-style pulls (without that, git refuses
     to pull once you have local commits and upstream has moved).
@@ -120,9 +135,13 @@ def setup(pset: str) -> None:
         raise ValueError(f"no pset directory {pset_dir}; is the clone healthy?")
     if str(pset_dir) not in sys.path:
         sys.path.insert(0, str(pset_dir))
-    if importlib.util.find_spec("pydrake") is None:
+    missing = list(dict.fromkeys(
+        pkg for mod, pkg in PACKAGES.items()
+        if importlib.util.find_spec(mod) is None
+    ))
+    if missing:
         subprocess.run(
-            [sys.executable, "-m", "pip", "install", "--quiet", "drake"],
+            [sys.executable, "-m", "pip", "install", "--quiet", *missing],
             check=True,
         )
     if subprocess.run(

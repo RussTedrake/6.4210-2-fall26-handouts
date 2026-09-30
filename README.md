@@ -88,8 +88,13 @@ cd 64210
 uv python install 3.13
 uv venv --python 3.13
 uv pip install drake
-uv pip install manipulation
+uv pip install "manipulation[letter]"
+uv pip install scipy rtree
 ```
+
+If you made the venv before ps4, add the letter-mesh packages now (ps4 needs
+them; without them it fails with `No module named 'shapely'`):
+`uv pip install "manipulation[letter]" scipy rtree`.
 
 > **Put the venv on a path with no spaces or special characters.**  Drake
 > fetches its robot models the first time a pset loads one, by running a helper
@@ -104,7 +109,8 @@ uv pip install manipulation
 > ```sh
 > uv venv --python 3.13 ~/venv64210
 > uv pip install --python ~/venv64210 drake
-> uv pip install --python ~/venv64210 manipulation
+> uv pip install --python ~/venv64210 "manipulation[letter]"
+> uv pip install --python ~/venv64210 scipy rtree
 > source ~/venv64210/bin/activate
 > ```
 
